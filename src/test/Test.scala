@@ -35,9 +35,9 @@ def test(file: String): Unit =
 
 @main
 def test(): Unit = {
-//  test_green()
-//  test_blue()
-//  test_red()
+  test_green()
+  test_blue()
+  test_red()
   test_black()
 }
 
@@ -63,8 +63,8 @@ def test_blue() : Unit = {
   test("blue5")
   test("blue6")
   test("blue7")
-  test("blue8") // should fail
-  test("blue9") // should fail
+//  test("blue8") // should fail
+//  test("blue9") // should fail
   test("blue10")
 }
 

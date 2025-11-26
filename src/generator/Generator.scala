@@ -18,7 +18,7 @@ object Generator :
       case BinaryExp(op, u, v) =>
         val c_u = gen(u)
         val c_v = gen(v)
-        c_u ::: (Push :: c_v) ::: List(gen_op(op)) // gen u, push, gen v, op
+        c_u ::: c_v ::: List(gen_op(op)) // gen u, push, gen v, op
 
       case Let(name, exp, body) =>
         val c_exp = gen(exp)
@@ -41,7 +41,7 @@ object Generator :
       case App(fun, arg) =>
         val c_fun = gen(fun)
         val c_arg = gen(arg)
-        Pushenv :: c_arg ::: (Push :: c_fun) ::: List(Apply, Popenv)
+        Pushenv :: c_arg ::: c_fun ::: List(Apply, Popenv)
 
       case FixFun(name, param, exp) =>
         val c_exp = gen(exp)

@@ -1,4 +1,4 @@
-// Generated from /Users/tgranier/Documents/IMT/LOGIN/COMPIL/workspace/TP-PCFLive/src/pcf/Pcf.g4 by ANTLR 4.13.2
+// Generated from /home/florent/Documents/IMT/CMPINT/TP-PCFLive/TP-PCFLive/src/pcf/Pcf.g4 by ANTLR 4.13.2
 package pcf;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -114,6 +114,14 @@ public class PcfParser extends Parser {
 		}
 		public AppContext(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterApp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitApp(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitApp(this);
 			else return visitor.visitChildren(this);
@@ -127,6 +135,14 @@ public class PcfParser extends Parser {
 		}
 		public FunctionContext(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterFunction(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitFunction(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitFunction(this);
 			else return visitor.visitChildren(this);
@@ -139,6 +155,14 @@ public class PcfParser extends Parser {
 		}
 		public ParExpContext(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterParExp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitParExp(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitParExp(this);
 			else return visitor.visitChildren(this);
@@ -148,6 +172,14 @@ public class PcfParser extends Parser {
 	public static class NumberContext extends TermContext {
 		public TerminalNode NUMBER() { return getToken(PcfParser.NUMBER, 0); }
 		public NumberContext(TermContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterNumber(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitNumber(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitNumber(this);
@@ -161,6 +193,14 @@ public class PcfParser extends Parser {
 			return getRuleContext(TermContext.class,0);
 		}
 		public FixContext(TermContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterFix(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitFix(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitFix(this);
@@ -178,6 +218,14 @@ public class PcfParser extends Parser {
 		public TerminalNode OP1() { return getToken(PcfParser.OP1, 0); }
 		public BinaryExp1Context(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterBinaryExp1(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitBinaryExp1(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitBinaryExp1(this);
 			else return visitor.visitChildren(this);
@@ -187,6 +235,14 @@ public class PcfParser extends Parser {
 	public static class VarContext extends TermContext {
 		public TerminalNode ID() { return getToken(PcfParser.ID, 0); }
 		public VarContext(TermContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterVar(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitVar(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitVar(this);
@@ -204,6 +260,14 @@ public class PcfParser extends Parser {
 		public TerminalNode OP2() { return getToken(PcfParser.OP2, 0); }
 		public BinaryExp2Context(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterBinaryExp2(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitBinaryExp2(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitBinaryExp2(this);
 			else return visitor.visitChildren(this);
@@ -220,6 +284,14 @@ public class PcfParser extends Parser {
 		}
 		public LetContext(TermContext ctx) { copyFrom(ctx); }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterLet(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitLet(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitLet(this);
 			else return visitor.visitChildren(this);
@@ -234,6 +306,14 @@ public class PcfParser extends Parser {
 			return getRuleContext(TermContext.class,i);
 		}
 		public IfZeroContext(TermContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).enterIfZero(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof PcfListener ) ((PcfListener)listener).exitIfZero(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof PcfVisitor ) return ((PcfVisitor<? extends T>)visitor).visitIfZero(this);

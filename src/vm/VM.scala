@@ -11,35 +11,38 @@ enum Value:
   case Closure(code: List[Ins], env: Env)
 
 type Env = List[Value]
-case class VMState(a: Value, s:List[Value|Env], e: Env, c: List[Ins])
+case class VMState(s:List[Value|Env], e: Env, c: List[Ins])
 
 object VM:
   def execute(c: List[Ins]): Value =
-    execute(IntVal(0), List(), List(), c)
+    execute(List(), List(), c)
 
   @tailrec
-  def execute(a: Value, s:List[Value|Env], e: Env, c: List[Ins]): Value = (a, s, e, c) match
-    case (_, _, _, List()) => a
-    case (_, _, _, Push::c) => execute(a, a::s, e, c)
-    case (_, _, _, Ldi(n)::c) => execute(IntVal(n), s, e, c)
-    case (IntVal(n), IntVal(m)::s, _, Add::c) => execute(IntVal(m+n), s, e, c)
-    case (IntVal(n), IntVal(m)::s, _, Sub::c) => execute(IntVal(m-n), s, e, c)
-    case (IntVal(n), IntVal(m)::s, _, Mul::c) => execute(IntVal(m*n), s, e, c)
-    case (IntVal(n), IntVal(m)::s, _, Div::c) => execute(IntVal(m/n), s, e, c)
-    case (IntVal(0), _, _, Test(i, _)::c) => execute(a, s, e, i:::c)
-    case (_, _, _, Test(_, j)::c) => execute(a, s, e, j:::c)
-    case (_,_,_,Search(p)::c) => execute(e(p), s, e, c)
-    case (_,_,_,Pushenv::c) => execute(a, e::s, e, c)
-    case (a, env::s, e, Popenv::c) => execute(a, s, env.asInstanceOf[Env], c)
-    case (a, s, e, Extend::c) => execute(a, s, a::e, c)
-    case (a, s, e, Mkclos(i)::c) => execute(Closure(i,e), s, e, c)
-    case (Closure(code, env), arg::s, e, Apply::c) =>
-      execute(arg.asInstanceOf[Value], s, arg.asInstanceOf[Value]::Closure(code,env)::env, code:::c)
+  def execute(s:List[Value|Env], e: Env, c: List[Ins]): Value = (s, e, c) match
+    case (head::s, _, List()) => head.asInstanceOf[Value]
+    case (_, _, Ldi(n)::c) => execute(IntVal(n)::s, e, c)
+    case (IntVal(n)::IntVal(m)::s, _, Add::c) => execute(IntVal(m+n)::s, e, c)
+    case (IntVal(n)::IntVal(m)::s, _, Sub::c) => execute(IntVal(m-n)::s, e, c)
+    case (IntVal(n)::IntVal(m)::s, _, Mul::c) => execute(IntVal(m*n)::s, e, c)
+    case (IntVal(n)::IntVal(m)::s, _, Div::c) => execute(IntVal(m/n)::s, e, c)
+    case (IntVal(0)::s, _, Test(i, _)::c) => execute(s, e, i:::c)
+    case (head::s, _, Test(_, j)::c) => execute(s, e, j:::c)
+    case (_,_,Search(p)::c) => execute(e(p)::s, e, c)
+    case (_,_,Pushenv::c) => execute(e::s, e, c)
+    case (v::env::s, e, Popenv::c) => execute(v :: s, env.asInstanceOf[Env], c)
+    case (env::s, e, Popenv::c) => execute(s, env.asInstanceOf[Env], c)
+    case (head::s, e, Extend::c) => execute(s, head.asInstanceOf[Value]::e, c)
+    case (s, e, Mkclos(i)::c) => execute(Closure(i,e)::s, e, c)
+    case (Closure(code, env)::arg::s, e, Apply::c) =>
+      execute(
+        s,
+        arg.asInstanceOf[Value]::Closure(code,env)::env,
+        code:::c)
     case state => throw Exception(s"unexpected VM state $state")
 
 @main
 def test(): Unit =
-  println(VM.execute(List(Ldi(1), Push, Ldi(2), Add, Test(List(Ldi(1)),List(Ldi(2))))))
+  println(VM.execute(List(Ldi(1), Ldi(2), Add, Test(List(Ldi(1)),List(Ldi(2))))))
 
 
 
