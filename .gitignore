@@ -45,3 +45,8 @@ build/
 
 ### Scala ###
 .bsp/
+
+### WebAssembly ###
+*.wasm
+*.wat
+!src/wat/*
