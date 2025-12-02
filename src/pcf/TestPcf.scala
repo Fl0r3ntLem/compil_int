@@ -18,17 +18,17 @@ def main(args: String*): Unit =
   val verbose = args.isEmpty || (args.length > 1 && args.contains("-v"))
   val check_vm = args.length > 1 && args.contains("-vm")
   if (args.contains("-i")) println(s"==> ${interpret(in)}")
-  else compile(verbose,check_vm,in,Option(args.head))
+  else compile(verbose, check_vm, in, Option(args.head))
 
 def interpret(in: InputStream): String =
-    val (abstractTree, a) = analyze(true,in)
+    val (abstractTree, a) = analyze(in,true)
     val value = Evaluator.eval(abstractTree, Map())
     println("AST: " + abstractTree)
     print("==> ")
     println(s"$value: $a")
     s""
 
-def analyze(verbose: Boolean,in: InputStream): (Term, Type) =
+def analyze(in: InputStream,verbose: Boolean): (Term, Type) =
   val term = AbstractParser.analyze(in)
   val typ = Typer.eval(term, Map())
   val result = (term, typ)
@@ -40,28 +40,30 @@ def compile(verbose: Boolean, check_vm: Boolean, is: InputStream, filename: Opti
   // write code to .wat file associated to .pcf file passed as argument,
   // returning .wat file relative filename
   def write(code: String): String = {
-    val WatFilename = filename.get.replaceAll("pcf", "wat")
-    if verbose then println("writing .wat code to " + WatFilename)
-    val out = new FileWriter(WatFilename)
+    val wat_filename = filename.get.replaceAll("pcf", "wat")
+    println("writing .wat code to " + wat_filename)
+    val out = new FileWriter(wat_filename)
     out.write(code)
     out.flush()
     out.close()
-    WatFilename
+    wat_filename
   }
-  val (term, _) = analyze(verbose, is)
+  
+  val (term, _) = analyze(is,verbose)
   val aterm = term.annotate(List())
   if check_vm then
     val code = Generator.genAM(aterm)
     if verbose then println(s"Code: $code")
-    else if !check(term, code) then throw Exception("Implementation Error")
-  filename match
-      case Some(name) =>
-        val fun_name = name.split("/").last.split("\\.").head
-        val code = Generator.gen(aterm, Option(fun_name))
-        write(code)
-      case None =>
-        val code = Generator.gen(aterm, None)
-        println(code)
+      if !check(term, code) then throw Exception("Implementation Error")
+  else
+    filename match
+        case Some(name) =>
+          val fun_name = name.split("/").last.split("\\.").head
+          val code = Generator.gen(aterm, Option(fun_name))
+          write(code)
+        case None =>
+          val code = Generator.gen(aterm, None)
+          println(code)
 
 def check(term: Term, code: List[Ins]): Boolean =
   val value = Evaluator.eval(term, Map())

@@ -17,6 +17,8 @@ def format(depth: Int, code: CodeWAT): String =
   code.map(ins => formatIns(depth, ins)).mkString("\n")
 
 def formatIns(depth: Int, ins: WAT): String = ins match
+  // Other WAT instructions won't appear here because emitIns only returns WAT.Ins and WAT.Test
+
   case WAT.Ins(s) => spaces(depth) + s
   case WAT.Test(code1, code2) =>
     val thenPart = format(depth + 2, code1)
@@ -25,15 +27,15 @@ def formatIns(depth: Int, ins: WAT): String = ins match
     // is true when the top of the stack is non-zero
     // we swap then and else parts accordingly to get a ifZero behavior
     s"""${spaces(depth)}(if (result i32)
-${spaces(depth + 1)}(then
-${elsePart}
-${spaces(depth + 1)})
-${spaces(depth + 1)}(else
-${thenPart}
-${spaces(depth + 1)})
-${spaces(depth)})"""
+       |${spaces(depth + 1)}(then
+       |${elsePart}
+       |${spaces(depth + 1)})
+       |${spaces(depth + 1)}(else
+       |${thenPart}
+       |${spaces(depth + 1)})
+       |${spaces(depth)})"""
 
-private def spaces(depth:Int): String = (for i <- 0 until depth yield "  ").mkString
+private def spaces(depth: Int): String = (for i <- 0 until depth yield "  ").mkString
 
 def emit(code: Code): CodeWAT = {
   var code_wat = List[WAT]()

@@ -56,7 +56,8 @@ object Generator :
 
   def genWAT(code: Code,name: Option[String]): String = {
       prelude() +
-      s"""(func (export \"${
+      s"""
+      |(func (export \"${
         name match {
           case Some(n) => n
           case None => "main"
