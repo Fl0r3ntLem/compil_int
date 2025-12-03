@@ -4,7 +4,6 @@ import ast.ATerm
 import ast.ATerm.*
 import ast.Op
 import ast.Op.*
-import WAT.*
 import generator.Ins.{Add, Apply, Div, Extend, Ldi, Mkclos, Mul, Popenv, Pushenv, Search, Sub, Test}
 
 import scala.io.Source
@@ -24,7 +23,7 @@ object Generator :
       case BinaryExp(op, u, v) =>
         val c_u = genAM(u)
         val c_v = genAM(v)
-        c_u ::: c_v ::: List(gen_op(op)) // gen u, push, gen v, op
+        c_u ::: c_v ::: List(genAM_op(op)) // gen u, push, gen v, op
 
       case Let(name, exp, body) =>
         val c_exp = genAM(exp)
@@ -54,21 +53,7 @@ object Generator :
         List(Mkclos(c_exp))
     }
 
-  def genWAT(code: Code,name: Option[String]): String = {
-      prelude() +
-      s"""
-      |(func (export \"${
-        name match {
-          case Some(n) => n
-          case None => "main"
-        }
-      }\") (result i32)
-         |${format(1, emit(code))}
-         |  return)
-         |)""".stripMargin
-  }
-
-  def gen_op(op: Op): generator.Ins =
+  def genAM_op(op: Op): generator.Ins =
     op match {
       case Plus => Add
       case Minus => Sub
@@ -76,8 +61,34 @@ object Generator :
       case Divide => Div
     }
 
-  def prelude(): String =
+
+  def genWAT(code: Code, name: Option[String]): String = {
+    val postlude = "\n)\n"
+    genWAT_prelude() +
+    emitTable +
+    genWAT_main(code, name) +
+    postlude
+  }
+
+  def genWAT_main(code: Code, name: Option[String]) =
+    val fun_name = name match {
+      case Some(n) => n
+      case None => "main"
+    }
+    s"""
+       |(func (export \"$fun_name\") (result i32)
+       |${format(1, emit(code, 0))}
+       |  return)
+       |""".stripMargin
+
+  def genWAT_prelude(): String =
     val source = Source.fromFile("src/wat/prelude.wat")
     val contents = source.mkString
     source.close()
     contents
+
+  private def emitTable: String =
+    s""" (table funcref
+       | (elem
+       | )
+       | )""".stripMargin

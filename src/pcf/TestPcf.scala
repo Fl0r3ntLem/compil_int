@@ -67,7 +67,7 @@ def compile(verbose: Boolean, check_vm: Boolean, is: InputStream, filename: Opti
 
 def check(term: Term, code: List[Ins]): Boolean =
   val value = Evaluator.eval(term, Map())
-  println(code) // in case the execution fails
+//  println(code) // in case the execution fails
   println(s"evaluator: $value")
   val value2 = vm.VM.execute(code)
   println(s"vm: $value2")

@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets
 
 def test(file: String): Unit =
   var args = Array("test/pcf/" + file + ".pcf")
-  args = args ++ Array("-v","-vm")
+  args = args ++ Array("-v")
   println(s"************* $file")
   try
     main(args*)
@@ -38,7 +38,7 @@ def test(file: String): Unit =
 def test(): Unit = {
 //  test_green()
   test_blue()
-//  test_red()
+  test_red()
 //  test_black()
 }
 
