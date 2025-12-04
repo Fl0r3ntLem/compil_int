@@ -52,7 +52,7 @@ def compile(verbose: Boolean, check_vm: Boolean, is: InputStream, filename: Opti
   val (term, _) = analyze(is,verbose)
   val aterm = term.annotate(List())
   if check_vm then
-    val code = Generator.genAM(aterm)
+    val code = Generator.genAM(aterm, 0).head
     if verbose then println(s"Code: $code")
       if !check(term, code) then throw Exception("Implementation Error")
   else

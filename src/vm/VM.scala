@@ -32,7 +32,7 @@ object VM:
     case (v::env::s, e, Popenv::c) => execute(v :: s, env.asInstanceOf[Env], c)
     case (env::s, e, Popenv::c) => execute(s, env.asInstanceOf[Env], c)
     case (head::s, e, Extend::c) => execute(s, head.asInstanceOf[Value]::e, c)
-    case (s, e, Mkclos(i)::c) => execute(Closure(i,e)::s, e, c)
+    case (s, e, Mkclos(idx, i)::c) => execute(Closure(i,e)::s, e, c)
     case (Closure(code, env)::arg::s, e, Apply::c) =>
       execute(
         s,

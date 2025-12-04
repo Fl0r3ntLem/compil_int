@@ -11,46 +11,49 @@ import scala.io.Source
 type Code = List[generator.Ins]
 
 object Generator :
-  def gen(term: ATerm, name: Option[String]): String =
-    genWAT(genAM(term),name)
+  def gen(term: ATerm, name: Option[String]): String = {
+    val (code, count) = genAM(term, 0)
+    val bodies = collectBodies(code, List())
+    genWAT(code, bodies, name)
+  }
 
-  def genAM(term: ATerm): Code =
+  def genAM(term: ATerm, idx: Int): (Code, Int) =
     term match {
-      case Number(n) => List(Ldi(n))
+      case Number(n) => (List(Ldi(n)), idx)
 
-      case Var(name, index) => List(Search(index))
+      case Var(name, index) => (List(Search(index)), idx)
 
       case BinaryExp(op, u, v) =>
-        val c_u = genAM(u)
-        val c_v = genAM(v)
-        c_u ::: c_v ::: List(genAM_op(op)) // gen u, push, gen v, op
+        val (c_u, i1) = genAM(u, idx)
+        val (c_v, i2) = genAM(v, i1)
+        (c_u ::: c_v ::: List(genAM_op(op)), i2) // gen u, push, gen v, op
 
       case Let(name, exp, body) =>
-        val c_exp = genAM(exp)
-        val c_body = genAM(body)
-        Pushenv :: c_exp ::: (Extend :: c_body) ::: List(Popenv)
+        val (c_exp, i1) = genAM(exp, idx)
+        val (c_body, i2) = genAM(body, i1)
+        (Pushenv :: c_exp ::: (Extend :: c_body) ::: List(Popenv), i2)
 
         // Let x = 1 in let y = x+1 in x+y
         // List(Pushenv, Ldi(1), Extend, Pushenv, Search(0), Push, Ldi(1), Add, Extend, Search(1), Push, Search(0), Add, Popenv, Popenv)
 
       case IfZero(cond, zExp, nzExp) =>
-        val c_cond = genAM(cond)
-        val c_zExp = genAM(zExp)
-        val c_nzExp = genAM(nzExp)
-        c_cond ::: List(Test(c_zExp, c_nzExp))
+        val (c_cond, i1) = genAM(cond, idx)
+        val (c_zExp, i2) = genAM(zExp, i1)
+        val (c_nzExp, i3) = genAM(nzExp, i2)
+        (c_cond ::: List(Test(c_zExp, c_nzExp)), i3)
 
       case Function(param, body) =>
-        val c_body = genAM(body)
-        List(Mkclos(c_body))
+        val (c_body, i1) = genAM(body, idx)
+        (List(Mkclos(i1, c_body)), i1+1)
 
       case App(fun, arg) =>
-        val c_fun = genAM(fun)
-        val c_arg = genAM(arg)
-        Pushenv :: c_arg ::: c_fun ::: List(Apply, Popenv)
+        val (c_fun, i1) = genAM(fun, idx)
+        val (c_arg, i2) = genAM(arg, i1)
+        (Pushenv :: c_arg ::: c_fun ::: List(Apply, Popenv), i2)
 
       case FixFun(name, param, exp) =>
-        val c_exp = genAM(exp)
-        List(Mkclos(c_exp))
+        val (c_exp, i1) = genAM(exp, idx)
+        (List(Mkclos(i1, c_exp)), i1+1)
     }
 
   def genAM_op(op: Op): generator.Ins =
@@ -62,10 +65,10 @@ object Generator :
     }
 
 
-  def genWAT(code: Code, name: Option[String]): String = {
+  def genWAT(code: Code, bodies: List[Code], name: Option[String]): String = {
     val postlude = "\n)\n"
     genWAT_prelude() +
-    emitTable +
+    emitTable(bodies.size) +
     genWAT_main(code, name) +
     postlude
   }
@@ -77,7 +80,7 @@ object Generator :
     }
     s"""
        |(func (export \"$fun_name\") (result i32)
-       |${format(1, emit(code, 0))}
+       |${format(1, emit(code))}
        |  return)
        |""".stripMargin
 
@@ -87,8 +90,22 @@ object Generator :
     source.close()
     contents
 
-  private def emitTable: String =
+  def functionName(i: Int): String = "$closure" + i
+
+  private def emitTable(size: Int): String = {
+    val closures = (0 until size).map(i => s"     ${functionName(i)}").mkString("\n")
     s""" (table funcref
-       | (elem
-       | )
-       | )""".stripMargin
+    |   (elem
+    |${closures}
+    |   )
+    |)""".stripMargin
+  }
+
+  def collectBodies(code: Code, bodiesSoFar: List[Code]): List[Code] =
+    code match {
+      case Nil => bodiesSoFar
+      case Mkclos(idx, body) :: rest =>
+        collectBodies(rest, bodiesSoFar :+ body)
+      case _ :: rest =>
+        collectBodies(rest, bodiesSoFar)
+    }

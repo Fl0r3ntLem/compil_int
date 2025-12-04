@@ -46,20 +46,20 @@ def formatIns(depth: Int, ins: WAT): String = ins match
 
 private def spaces(depth: Int): String = (for i <- 0 until depth yield "  ").mkString
 
-def emit(code: Code, idx: Int): CodeWAT = {
+def emit(code: Code): CodeWAT = {
   var code_wat = List[WAT]()
   for (ins <- code) do
-    code_wat = (code_wat ::: emitIns(ins, idx))
+    code_wat = (code_wat ::: emitIns(ins))
   code_wat
 }
 
-def emitIns(ins: Ins, idx: Int): CodeWAT = ins match
+def emitIns(ins: Ins): CodeWAT = ins match
   case Ldi(n) => List(WAT.Ins(s"i32.const $n"))
   case Add    => List(WAT.Ins("i32.add"))
   case Sub    => List(WAT.Ins("i32.sub"))
   case Mul    => List(WAT.Ins("i32.mul"))
   case Div    => List(WAT.Ins("i32.div_s"))
-  case Test(i,j) => List(WAT.Test(emit(i, idx), emit(j, idx)))
+  case Test(i,j) => List(WAT.Test(emit(i), emit(j)))
   case Search(n) => List(
     WAT.Search(
       WAT.Ins("(call $search"),
@@ -79,9 +79,8 @@ def emitIns(ins: Ins, idx: Int): CodeWAT = ins match
     WAT.Ins("global.set $ENV"),
     WAT.Ins("global.get $ACC")
   )
-  case Mkclos(code) =>
-    val idx_incr = idx + 1
-    val body = emit(code, idx_incr)
+  case Mkclos(idx, code) =>
+    val body = emit(code)
     List(
 //      WAT.Ins(s"(func $$function$idx (result i32)"),
 //    ) ::: body ::: List(
