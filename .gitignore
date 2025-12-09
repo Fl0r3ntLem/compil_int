@@ -49,4 +49,5 @@ build/
 ### WebAssembly ###
 *.wasm
 *.wat
+*.txt
 !src/wat/*

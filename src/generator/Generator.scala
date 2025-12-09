@@ -70,6 +70,7 @@ object Generator :
     genWAT_prelude() +
     emitTable(bodies.size) +
     genWAT_main(code, name) +
+    emitFunctions(bodies) +
     postlude
   }
 
@@ -78,8 +79,9 @@ object Generator :
       case Some(n) => n
       case None => "main"
     }
+//    (func (export \"$fun_name\") (result i32)
     s"""
-       |(func (export \"$fun_name\") (result i32)
+       |(func (export \"main\") (result i32)
        |${format(1, emit(code))}
        |  return)
        |""".stripMargin
@@ -105,7 +107,12 @@ object Generator :
     code match {
       case Nil => bodiesSoFar
       case Mkclos(idx, body) :: rest =>
-        collectBodies(rest, bodiesSoFar :+ body)
+        val inner_body = collectBodies(body, List())
+        collectBodies(rest, bodiesSoFar ::: inner_body ::: List(body))
+      case Test(c1, c2) :: rest =>
+        val bodies1 = collectBodies(c1, bodiesSoFar)
+        val bodies2 = collectBodies(c2, bodies1)
+        collectBodies(rest, bodies2)
       case _ :: rest =>
         collectBodies(rest, bodiesSoFar)
     }

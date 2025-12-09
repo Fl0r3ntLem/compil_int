@@ -26,34 +26,41 @@ def formatIns(depth: Int, ins: WAT): String = ins match
     // as WebAssembly's 'if' makes sure the condition
     // is true when the top of the stack is non-zero
     // we swap then and else parts accordingly to get a ifZero behavior
-    s"""${spaces(depth)}(if (result i32)
+    s"""
+       |${spaces(depth)}(if (result i32)
        |${spaces(depth + 1)}(then
        |${elsePart}
        |${spaces(depth + 1)})
        |${spaces(depth + 1)}(else
        |${thenPart}
        |${spaces(depth + 1)})
-       |${spaces(depth)})"""
+       |${spaces(depth)})""".stripMargin
   case WAT.Extend(code*) =>
     val body = format(depth + 1, code.toList)
-    s"""${spaces(depth)};;extend
+    s"""
+       |${spaces(depth)};;extend
        |${body}
-       |${spaces(depth)};;end extend"""
+       |${spaces(depth)};;end extend""".stripMargin
   case WAT.Search(code*) =>
-    val body = format(depth + 1, code.toList)
-    s"${spaces(depth)}" + body
+    val depths = List(depth,depth+1,depth+1,depth)
+    val instructions = code.toList
+    instructions.zip(depths).map {
+      case (ins, d) =>
+      formatIns(d, ins)}.mkString("\n")
   case WAT.Popenv(code*) =>
     val body = format(depth + 1, code.toList)
-    s"""${spaces(depth)};;popenv
+    s"""
+       |${spaces(depth)};;popenv
        |${body}
-       |${spaces(depth)};;end popenv"""
+       |${spaces(depth)};;end popenv""".stripMargin
   case WAT.Mkclos(fun_name, body, fun_end, call) =>
-    s"""${spaces(depth)};;mkclos
+    s"""
+        |${spaces(depth)};;mkclos
         |${formatIns(depth, fun_name)}
         |${format(depth + 1, body)}
         |${formatIns(depth, fun_end)}
         |${formatIns(depth, call)}
-        |${spaces(depth)};;end mkclos"""
+        |${spaces(depth)};;end mkclos""".stripMargin
 
 
 private def spaces(depth: Int): String = (for i <- 0 until depth yield "  ").mkString
@@ -96,3 +103,12 @@ def emitIns(ins: Ins): WAT = ins match
   case Apply =>
       WAT.Ins(s"(call $$apply)")
   case _ => throw Exception(s"Unsupported instruction $ins in WAT generator")
+
+
+def emitFunctions(bodies: List[Code]): String = {
+  bodies.zipWithIndex.map((body, index) =>
+    s"(func $$closure${index} (result i32)\n" +
+    format(1,emit(body)) +
+    "\n)"
+  ).mkString("\n") + "\n"
+}

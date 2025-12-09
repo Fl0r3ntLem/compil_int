@@ -6,12 +6,6 @@
   (global $LIST i32 (i32.const 1))       ;; LIST tag (for non empty lists)
   (global $NIL  i32 (i32.const 0))       ;; NIL tag (for empty lists)
 
-  ;; table of closure bodies
-  (table funcref
-    (elem
-      $eleven ;; index 0
-    )
-  )
   ;; stores a pair on the heap and returns a pointer to the pair
   ;; final state (initially result = HEAP):
   ;;             ----------
@@ -102,10 +96,5 @@
       (global.set $ENV)
     ;; retrieve index of closure body and execute the body
     (call_indirect (result i32) (i32.load (local.get $C)))
-  )
-  ;; for testing purposes
-  (func $eleven (result i32)
-    (i32.const 11)
-    (return)
   )
 
