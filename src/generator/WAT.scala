@@ -9,9 +9,9 @@ enum WAT:
   case Test(code1: CodeWAT, code2: CodeWAT)
   case Search(code: WAT*)
   case Pushenv
-  case Popenv
+  case Popenv(code: WAT*)
   case Extend(code : WAT*)
-  case Mkclos(code: CodeWAT)
+  case Mkclos(fun_name: WAT, body: CodeWAT, fun_end: WAT, call: WAT)
 
 def format(depth: Int, code: CodeWAT): String =
   code.map(ins => formatIns(depth, ins)).mkString("\n")
@@ -21,8 +21,8 @@ def formatIns(depth: Int, ins: WAT): String = ins match
 
   case WAT.Ins(s) => spaces(depth) + s
   case WAT.Test(code1, code2) =>
-    val thenPart = format(depth + 2, code1)
-    val elsePart = format(depth + 2, code2)
+    val thenPart = format(depth + 1, code1)
+    val elsePart = format(depth + 1, code2)
     // as WebAssembly's 'if' makes sure the condition
     // is true when the top of the stack is non-zero
     // we swap then and else parts accordingly to get a ifZero behavior
@@ -42,6 +42,18 @@ def formatIns(depth: Int, ins: WAT): String = ins match
   case WAT.Search(code*) =>
     val body = format(depth + 1, code.toList)
     s"${spaces(depth)}" + body
+  case WAT.Popenv(code*) =>
+    val body = format(depth + 1, code.toList)
+    s"""${spaces(depth)};;popenv
+       |${body}
+       |${spaces(depth)};;end popenv"""
+  case WAT.Mkclos(fun_name, body, fun_end, call) =>
+    s"""${spaces(depth)};;mkclos
+        |${formatIns(depth, fun_name)}
+        |${format(depth + 1, body)}
+        |${formatIns(depth, fun_end)}
+        |${formatIns(depth, call)}
+        |${spaces(depth)};;end mkclos"""
 
 
 private def spaces(depth: Int): String = (for i <- 0 until depth yield "  ").mkString
@@ -49,47 +61,38 @@ private def spaces(depth: Int): String = (for i <- 0 until depth yield "  ").mkS
 def emit(code: Code): CodeWAT = {
   var code_wat = List[WAT]()
   for (ins <- code) do
-    code_wat = (code_wat ::: emitIns(ins))
+    code_wat = (code_wat :+ emitIns(ins))
   code_wat
 }
 
-def emitIns(ins: Ins): CodeWAT = ins match
-  case Ldi(n) => List(WAT.Ins(s"i32.const $n"))
-  case Add    => List(WAT.Ins("i32.add"))
-  case Sub    => List(WAT.Ins("i32.sub"))
-  case Mul    => List(WAT.Ins("i32.mul"))
-  case Div    => List(WAT.Ins("i32.div_s"))
-  case Test(i,j) => List(WAT.Test(emit(i), emit(j)))
-  case Search(n) => List(
+def emitIns(ins: Ins): WAT = ins match
+  case Ldi(n) => WAT.Ins(s"i32.const $n")
+  case Add    => WAT.Ins("i32.add")
+  case Sub    => WAT.Ins("i32.sub")
+  case Mul    => WAT.Ins("i32.mul")
+  case Div    => WAT.Ins("i32.div_s")
+  case Test(i,j) => WAT.Test(emit(i), emit(j))
+  case Search(n) =>
     WAT.Search(
       WAT.Ins("(call $search"),
       WAT.Ins(s"(i32.const $n)"),
       WAT.Ins("(global.get $ENV)"),
       WAT.Ins(")")
     )
-  )
-  case Extend => List(WAT.Extend(
+  case Extend => WAT.Extend(
       WAT.Ins("global.get $ENV"),
       WAT.Ins("call $cons"),
       WAT.Ins("global.set $ENV")
-  ))
-  case Pushenv => List(WAT.Ins("global.get $ENV"))
-  case Popenv => List(
+  )
+  case Pushenv => WAT.Ins("global.get $ENV ;; pushenv")
+  case Popenv => WAT.Popenv(
     WAT.Ins("global.set $ACC"),
     WAT.Ins("global.set $ENV"),
     WAT.Ins("global.get $ACC")
   )
   case Mkclos(idx, code) =>
     val body = emit(code)
-    List(
-//      WAT.Ins(s"(func $$function$idx (result i32)"),
-//    ) ::: body ::: List(
-//      WAT.Ins(")"),
-      WAT.Ins(s"(call $$pair (i32.const $idx) (global.get $$ENV))"),
-    )
-
+      WAT.Ins(s"(call $$pair (i32.const $idx) (global.get $$ENV))")
   case Apply =>
-    List(
       WAT.Ins(s"(call $$apply)")
-    )
   case _ => throw Exception(s"Unsupported instruction $ins in WAT generator")

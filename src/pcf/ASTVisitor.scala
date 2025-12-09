@@ -50,7 +50,7 @@ class ASTVisitor[AST] extends PcfBaseVisitor[Term] :
     val List(exp, body) =
       for (concreteTerm <- concreteTerms) yield
         visit(concreteTerm)
-    Let(name, exp, body)
+    Let(name, exp, body) // <=> Apply(Function(name, body), exp)
 
   override def visitFunction(ctx: PcfParser.FunctionContext): Term =
     val param = ctx.ID().getText
