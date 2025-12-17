@@ -1,6 +1,6 @@
 package test
 
-import pcf.main
+import pcf.main as main_pcf
 
 object TestInterp extends App:
   test("green0")
@@ -56,9 +56,9 @@ object TestInterp extends App:
 
   private def test(filename: String): Unit =
     val dir = "test/"
-    val args = Array(dir + filename + ".pcf", "-v", "-i")
+    val args = Array(dir + filename + ".pcf", "-v")
     println(s"**********  ${args(0)}")
     try
-      main(args)
+      main_pcf(args*)
     catch
       case ex: Exception => println(s"${ex.getClass} ${ex.getMessage}")
