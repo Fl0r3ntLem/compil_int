@@ -11,8 +11,11 @@ import scala.io.Source
 type Code = List[generator.Ins]
 
 object Generator :
-  def gen(term: ATerm, name: Option[String]): String = {
+  def gen(term: ATerm, name: Option[String], verbose: Boolean): String = {
+    // name param is if we wanted to name the main function something other than "main"
     val (code, count) = genAM(term, 0)
+    if verbose then println(s"AM Code: $code")
+    if verbose then println(s"Number of closures: $count")
     val bodies = collectBodies(code, List())
     genWAT(code, bodies, name)
   }

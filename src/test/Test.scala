@@ -66,6 +66,7 @@ trait Test {
           if (time2 >= time1) { // a wasm file has been produced
             execute(outFileName)
             val result = display(root + ".txt")
+            if verbose then println(s"Result: $result")
             if (result == expectation) {
               println("SUCCESS on " + fileName)
               success += 1

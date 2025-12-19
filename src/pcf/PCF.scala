@@ -11,21 +11,20 @@ object PCF:
 
   def main(args: Array[String]): Unit =
     val in: InputStream =
-      if args.isEmpty || args.contains("-i") then
+      if args.isEmpty then // || args.contains("-i")
         System.in
       else
         FileInputStream(args(0))
 
     val verbose = args.isEmpty || (args.length > 1 && args.contains("-v"))
     val check_vm = args.length > 1 && args.contains("-vm")
-    if (args.contains("-i")) println(s"==> ${interpret(in)}")
+    if (args.contains("-i")) then interpret(verbose, in)
     else compile(verbose, check_vm, in, Option(args.head))
 
-  def interpret(in: InputStream): String =
-      val (abstractTree, a) = Analyzer.analyze(in,true)
+  def interpret(verbose: Boolean, in: InputStream): String =
+      val (abstractTree, a) = Analyzer.analyze(in, verbose)
       val value = Evaluator.eval(abstractTree, Map())
-      println("AST: " + abstractTree)
-      print("==> ")
+      print("Result ==> ")
       println(s"$value: $a")
       s""
 
@@ -34,7 +33,7 @@ object PCF:
     // returning .wat file relative filename
     def write(code: String): String = {
       val wat_filename = filename.get.replaceAll("pcf", "wat")
-      println("writing .wat code to " + wat_filename)
+      println("Writing .wat code to " + wat_filename)
       val out = new FileWriter(wat_filename)
       out.write(code)
       out.flush()
@@ -42,26 +41,27 @@ object PCF:
       wat_filename
     }
 
-    val (term, _) = Analyzer.analyze(is,verbose)
+    val (term, _) = Analyzer.analyze(is, verbose)
     val aterm = term.annotate(List())
     if check_vm then
       val code = Generator.genAM(aterm, 0).head
       if verbose then println(s"Code: $code")
-        if !check(term, code) then throw Exception("Implementation Error")
+      if !check(term, code, verbose) then throw Exception("Implementation Error: mismatch value between evaluator and VM")
+      else println(s"==> Result: ${vm.VM.execute(code)}")
     else
       filename match
-          case Some(name) =>
-            val fun_name = name.split("/").last.split("\\.").head
-            val code = Generator.gen(aterm, Option(fun_name))
-            write(code)
-          case None =>
-            val code = Generator.gen(aterm, None)
-            println(code)
+        case Some(name) =>
+          val fun_name = name.split("/").last.split("\\.").head
+          val code = Generator.gen(aterm, Option(fun_name), verbose)
+          if verbose then println("-> Successfully generated WAT code")
+          write(code)
+        case None =>
+          val code = Generator.gen(aterm, None, verbose)
+          println(code)
 
-  def check(term: Term, code: List[Ins]): Boolean =
+  def check(term: Term, code: List[Ins], verbose: Boolean): Boolean =
     val value = Evaluator.eval(term, Map())
-  //  println(code) // in case the execution fails
-    println(s"evaluator: $value")
+    if verbose then println(s"Evaluator result: $value")
     val value2 = vm.VM.execute(code)
-    println(s"vm: $value2")
+    if verbose then println(s"VM result: $value2")
     value2.toString == value.toString // valid only for PCF green and blue

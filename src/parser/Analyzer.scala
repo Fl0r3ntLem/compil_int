@@ -13,7 +13,7 @@ object Analyzer {
     val typ = Typer.eval(term, Map())
     val result = (term, typ)
     if (verbose) {
-      println(s"Analyzer (term): $term")
+      println(s"Analyzer (AST): $term")
       println(s"Typer: $typ")
     }
     result

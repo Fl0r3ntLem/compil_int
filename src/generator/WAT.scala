@@ -98,7 +98,6 @@ def emitIns(ins: Ins): WAT = ins match
     WAT.Ins("global.get $ACC")
   )
   case Mkclos(idx, code) =>
-    val body = emit(code)
       WAT.Ins(s"(call $$pair (i32.const $idx) (global.get $$ENV))")
   case Apply =>
       WAT.Ins(s"(call $$apply)")
