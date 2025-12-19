@@ -3,6 +3,8 @@ package test
 import pcf.PCF
 
 object TestInterp extends App:
+  //To run the live interpreter, uncomment the following line
+  // interpret()
   test("green0")
   test("green1")
   test("green2")
@@ -62,3 +64,7 @@ object TestInterp extends App:
       PCF.main(args)
     catch
       case ex: Exception => println(s"${ex.getClass} ${ex.getMessage}")
+
+  private def interpret() : Unit =
+    val args = Array("-v", "-i")
+    PCF.main(args)
