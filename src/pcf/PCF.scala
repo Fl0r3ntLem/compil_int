@@ -11,7 +11,8 @@ object PCF:
 
   def main(args: Array[String]): Unit =
     val in: InputStream =
-      if args.isEmpty then // || args.contains("-i")
+      if args.isEmpty || args.forall(!_.contains('.')) then
+        // we read input only if there is no filename given in the args
         System.in
       else
         FileInputStream(args(0))
