@@ -2,7 +2,7 @@ package test
 
 import java.io.File
 import scala.io.Source
-import pcf.main
+import pcf.PCF
 
 /**
  * @author Jacques Noye
@@ -16,7 +16,7 @@ trait Test {
   def report(): Unit = println(s"$success successful tests out of $count")
 
   // assumes the path environment variable has been updated so that bash (and wabt) is in the path
-  private val SHELL = "zsh" //"bash"
+  private val SHELL = "bash"
   private val CC = "wat2wasm"
   private val EXEC = "wasm-interp"
   private val EXEC_SUFFIX = "--run-all-exports"
@@ -37,12 +37,12 @@ trait Test {
     if (verbose) args0(1) = "-v"
     println(s"==== $fileName : $test, expected: $expectation")
     try {
-      val cFileName = fileName.replaceAll("pcf", "wat")
-//      val cFileName = root // + ".wat"
+      val root = fileName.replaceFirst("\\.pcf\\z", "")
+      val cFileName = root + ".wat"
       val cFile = new File(cFileName)
       val time0: Long = if (cFile.exists) cFile.lastModified else 0
       try
-        main(args0*)
+        PCF.main(args0)
       catch {
         case e: Exception => expectation match {
           case None =>
@@ -65,7 +65,7 @@ trait Test {
           val time2 = outFile.lastModified
           if (time2 >= time1) { // a wasm file has been produced
             execute(outFileName)
-            val result = display(fileName.replace("pcf", "txt"))
+            val result = display(root + ".txt")
             if (result == expectation) {
               println("SUCCESS on " + fileName)
               success += 1
@@ -109,7 +109,7 @@ trait Test {
     //		cmd[0] = "/bin/sh";
     //		cmd[1] = "-c";
     //		cmd[2] = "/usr/bin/gcc " + CFilename;
-    val outputFileName = cFileName.replaceAll("wat", "wasm")
+    val outputFileName = cFileName.replaceFirst("\\.wat\\z", ".wasm")
     val cmd = Array(SHELL, "-c", s"$CC $cFileName -o $outputFileName")
     Runtime.getRuntime.exec(cmd).waitFor
     outputFileName
@@ -121,7 +121,7 @@ trait Test {
    * @param fileName Input executable (.out) file.
    */
   private def execute(fileName: String) = {
-    val txtFileName = fileName.replaceAll("wasm", "txt")
+    val txtFileName = fileName.replaceFirst("\\.wasm\\z", ".txt")
     val cmd = Array(SHELL, "-c", EXEC + " " + fileName + " " + EXEC_SUFFIX + ">" + txtFileName)
     Runtime.getRuntime.exec(cmd).waitFor
   }
